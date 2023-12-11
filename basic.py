@@ -83,7 +83,7 @@ async def main():
                     successfull_txs += 4
                     logging.info(f"{i} successful transfer ({successfull_txs} transactions)")
             
-            if total_transactions % 4 != 0 and total_transaction - 4 > successfull_txs:
+            if total_transactions % 4 != 0 and total_transactions - 4 > successfull_txs:
                 res = await send_wait_transaction(wallet, recipient_address, FORWARD_TON_AMOUTN, payload, total_transactions % 4)
                 if not res:
                     logging.error(f"Failed to send tansfer №{total_transactions // 4 + 1}")
@@ -134,13 +134,13 @@ async def send_wait_transaction(wallet: WALLET_TYPE, address: Address | str,
                 msgs.append(wallet.create_wallet_internal_message(address, 3, send_amount, payload))
             
             prev_seqno = await wallet.get_seqno()
-            await wallet.raw_transfer(msgs)
+            await wallet.raw_transfer(msgs, seqno_from_get_meth=False)
             break
         except:
             await asyncio.sleep(1)
             pass
 
-    for _ in range(120):  # wait 10 minutes for transaction
+    for _ in range(30):  # wait 2.5 minutes for transaction
         new_seqno = await wallet.get_seqno()
         if new_seqno != prev_seqno:
             return True
