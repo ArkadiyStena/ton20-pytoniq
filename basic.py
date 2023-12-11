@@ -47,7 +47,7 @@ async def main():
 
     while True:
         try:
-            client = LiteBalancer.from_mainnet_config(trust_level=1)
+            client = LiteBalancer.from_mainnet_config(trust_level=1, timeout=30)
             await client.start_up()
             wallet = await WALLET_TYPE.from_mnemonic(client, wallet_mnemonic)
             wallet_balance = await wallet.get_balance()
@@ -98,6 +98,7 @@ async def main():
                         f"time spent: {spent_time // 3600 :02d}:{(spent_time % 3600) // 60:02d}:{(spent_time % 60):02d}")
 
         except:
+            await asyncio.sleep(1)
             pass            
 
 
@@ -126,14 +127,20 @@ async def check_deployed(wallet: WALLET_TYPE):
 
 async def send_wait_transaction(wallet: WALLET_TYPE, address: Address | str, 
                                 send_amount: int, payload: Cell, msg_count: int = 4):
-    msgs = []
-    for _ in range(msg_count):
-        msgs.append(wallet.create_wallet_internal_message(address, 3, send_amount, payload))
-    
-    prev_seqno = await wallet.get_seqno()
-    await wallet.raw_transfer(msgs)
+    while True:
+        try:
+            msgs = []
+            for _ in range(msg_count):
+                msgs.append(wallet.create_wallet_internal_message(address, 3, send_amount, payload))
+            
+            prev_seqno = await wallet.get_seqno()
+            await wallet.raw_transfer(msgs)
+            break
+        except:
+            await asyncio.sleep(1)
+            pass
 
-    for _ in range(60):  # wait 5 minutes for transaction
+    for _ in range(120):  # wait 10 minutes for transaction
         new_seqno = await wallet.get_seqno()
         if new_seqno != prev_seqno:
             return True
