@@ -134,7 +134,7 @@ async def send_wait_transaction(wallet: WALLET_TYPE, address: Address | str,
                 msgs.append(wallet.create_wallet_internal_message(address, 3, send_amount, payload))
             
             prev_seqno = await wallet.get_seqno()
-            await wallet.raw_transfer(msgs, seqno_from_get_meth=False)
+            await wallet.raw_transfer(msgs, seqno_from_get_meth=True)
             break
         except:
             await asyncio.sleep(1)
